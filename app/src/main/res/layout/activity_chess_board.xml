@@ -15,7 +15,6 @@
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintVertical_bias="0.0"
         tools:layout_editor_absoluteX="0dp">
-
     </LinearLayout>
 
 
@@ -32,6 +31,7 @@
         android:columnCount="8"
         android:orientation="horizontal"
         android:rowCount="8"
+        android:clipChildren="false"
         >
 
 <!--        <FrameLayout
@@ -70,7 +70,7 @@
         </FrameLayout>
 -->
 
-        
+
     </GridLayout>
 
 
