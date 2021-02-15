@@ -28,8 +28,6 @@ import java.util.ArrayList;
 
 public class PlayChessActivity extends AppCompatActivity implements View.OnDragListener, View.OnTouchListener {
 
-    private float xCoordinate, yCoordinate;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -115,7 +113,7 @@ public class PlayChessActivity extends AppCompatActivity implements View.OnDragL
 
         // Store the action type for the incoming event
         int action = event.getAction();
-
+        View view;
         // Handles each of the expected events
         switch (action) {
             case DragEvent.ACTION_DRAG_STARTED:
@@ -149,7 +147,7 @@ public class PlayChessActivity extends AppCompatActivity implements View.OnDragL
             case DragEvent.ACTION_DROP:
                 v.getBackground().clearColorFilter();
 
-                View view = (View) event.getLocalState();
+                view = (View) event.getLocalState();
                 ViewGroup owner = (ViewGroup) view.getParent();
                 owner.removeView(view);
                 FrameLayout container = (FrameLayout) v;
@@ -161,6 +159,10 @@ public class PlayChessActivity extends AppCompatActivity implements View.OnDragL
                 return true;
 
             case DragEvent.ACTION_DRAG_ENDED:
+                if (!event.getResult()) {
+                    view = (View) event.getLocalState();
+                    view.setVisibility(View.VISIBLE);
+                }
 
                 return true;
 
