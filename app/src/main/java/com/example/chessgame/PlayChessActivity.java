@@ -22,71 +22,24 @@ import android.widget.Toast;
 import com.example.chessgame.chess.ChessBoard;
 import com.example.chessgame.chess.Implementation;
 import com.example.chessgame.chess.PlayerColor;
+import com.example.chessgame.chess.Position;
 import com.example.chessgame.chess.Tile;
 
 import java.util.ArrayList;
 
 public class PlayChessActivity extends AppCompatActivity implements View.OnDragListener, View.OnTouchListener {
+    private final ChessBoard chessBoard = new ChessBoard();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_chess_board);
 
-        ChessBoard chessBoard = new ChessBoard();
         ArrayList<ArrayList<Tile>> tiles = chessBoard.getTiles();
 
         GridLayout chessBoardLayout = findViewById(R.id.chessBoard);
 
-
-        boolean black = false;
-
-        for (ArrayList<Tile> row : tiles) {
-            for (Tile tile : row) {
-
-                RelativeLayout.LayoutParams lpImage = new RelativeLayout.LayoutParams(
-                        RelativeLayout.LayoutParams.MATCH_PARENT,
-                        RelativeLayout.LayoutParams.MATCH_PARENT);
-                lpImage.addRule(RelativeLayout.CENTER_IN_PARENT);
-
-                GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED, 1f));
-                layoutParams.height = 0;
-                layoutParams.width = 0;
-
-                FrameLayout frameLayout = new FrameLayout(this);
-
-                frameLayout.setBackgroundColor(getResources().getColor(
-                        black ? R.color.blackTile : R.color.whiteTile
-                ));
-                frameLayout.setLayoutParams(layoutParams);
-                frameLayout.setOnDragListener(this);
-                frameLayout.setClipChildren(false);
-
-                if (!tile.isEmpty()) {
-                    ImageView imageView = new ImageView(this);
-                    imageView.setOnTouchListener(this);
-                    imageView.setImageResource(Implementation.typeToAsset.get(tile.getPieceType()));
-                    if (tile.getPlayerColor() == PlayerColor.BLACK) {
-                        //imageView.setColorFilter(getResources().getColor(R.color.black));
-                        float[] negative = {
-                                -1.0f, 0, 0, 0, 255, // red
-                                0, -1.0f, 0, 0, 255, // green
-                                0, 0, -1.0f, 0, 255, // blue
-                                0, 0, 0, 1.0f, 0  // alpha
-                        };
-
-                        imageView.setColorFilter(new ColorMatrixColorFilter(negative));
-
-                    }
-
-                    imageView.setLayoutParams(lpImage);
-                    frameLayout.addView(imageView);
-                }
-                chessBoardLayout.addView(frameLayout);
-                black = !black;
-            }
-            black = !black;
-        }
+        createTilesLayout(tiles, chessBoardLayout);
 
     }
 
@@ -100,6 +53,7 @@ public class PlayChessActivity extends AppCompatActivity implements View.OnDragL
             view.startDragAndDrop(data, shadowBuilder, view, 0);
             return true;
         } else if (event.getAction() == MotionEvent.ACTION_UP) {
+            view.setVisibility(View.VISIBLE);
             view.performClick();
             return true;
         } else {
@@ -146,13 +100,18 @@ public class PlayChessActivity extends AppCompatActivity implements View.OnDragL
 
             case DragEvent.ACTION_DROP:
                 v.getBackground().clearColorFilter();
-
+                TileFrameLayout tileLayout = (TileFrameLayout) v;
                 view = (View) event.getLocalState();
-                ViewGroup owner = (ViewGroup) view.getParent();
-                owner.removeView(view);
-                FrameLayout container = (FrameLayout) v;
-                container.addView(view);
-                view.setVisibility(View.VISIBLE);
+                TileFrameLayout parentTileLayout = (TileFrameLayout) view.getParent();
+
+                if (chessBoard.canMove(new Position(parentTileLayout.yPos, parentTileLayout.xPos), new Position(tileLayout.yPos, tileLayout.xPos))) {
+                    parentTileLayout.removeView(view);
+                    tileLayout.removeAllViewsInLayout();
+                    tileLayout.addView(view);
+                    view.setVisibility(View.VISIBLE);
+                } else {
+                    view.setVisibility(View.VISIBLE);
+                }
 
                 v.invalidate();
 
@@ -172,5 +131,57 @@ public class PlayChessActivity extends AppCompatActivity implements View.OnDragL
 
         return false;
     }
+
+    private void createTilesLayout(ArrayList<ArrayList<Tile>> tiles, GridLayout chessBoardLayout) {
+        boolean black = false;
+
+        for (int rowNb = 0; rowNb < tiles.size(); rowNb++) {
+            for (int colNb = 0; colNb < tiles.size(); colNb++) {
+                Tile tile = tiles.get(rowNb).get(colNb);
+                RelativeLayout.LayoutParams lpImage = new RelativeLayout.LayoutParams(
+                        RelativeLayout.LayoutParams.MATCH_PARENT,
+                        RelativeLayout.LayoutParams.MATCH_PARENT);
+                lpImage.addRule(RelativeLayout.CENTER_IN_PARENT);
+
+                GridLayout.LayoutParams layoutParams = new GridLayout.LayoutParams(GridLayout.spec(GridLayout.UNDEFINED, 1f), GridLayout.spec(GridLayout.UNDEFINED, 1f));
+                layoutParams.height = 0;
+                layoutParams.width = 0;
+
+                TileFrameLayout frameLayout = new TileFrameLayout(this);
+
+                frameLayout.setBackgroundColor(getResources().getColor(
+                        black ? R.color.blackTile : R.color.whiteTile
+                ));
+                frameLayout.setLayoutParams(layoutParams);
+                frameLayout.setOnDragListener(this);
+                frameLayout.setClipChildren(false);
+                frameLayout.setPosInGrid(colNb, rowNb);
+
+                if (!tile.isEmpty()) {
+                    ImageView imageView = new ImageView(this);
+                    imageView.setOnTouchListener(this);
+                    imageView.setImageResource(Implementation.typeToAsset.get(tile.getPieceType()));
+                    if (tile.getPlayerColor() == PlayerColor.BLACK) {
+                        float[] negative = {
+                                -1.0f, 0, 0, 0, 255, // red
+                                0, -1.0f, 0, 0, 255, // green
+                                0, 0, -1.0f, 0, 255, // blue
+                                0, 0, 0, 1.0f, 0  // alpha
+                        };
+
+                        imageView.setColorFilter(new ColorMatrixColorFilter(negative));
+
+                    }
+
+                    imageView.setLayoutParams(lpImage);
+                    frameLayout.addView(imageView);
+                }
+                chessBoardLayout.addView(frameLayout);
+                black = !black;
+            }
+            black = !black;
+        }
+    }
+
 
 }

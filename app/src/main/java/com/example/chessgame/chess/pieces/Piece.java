@@ -1,6 +1,8 @@
 package com.example.chessgame.chess.pieces;
 
+import com.example.chessgame.chess.Conditions;
 import com.example.chessgame.chess.PlayerColor;
+import com.example.chessgame.chess.Position;
 
 public abstract class Piece {
 
@@ -27,4 +29,6 @@ public abstract class Piece {
     public PlayerColor getPlayerColor() {
         return _player;
     }
+
+    public abstract Conditions canMoveTo(Position from, Position to);
 }
